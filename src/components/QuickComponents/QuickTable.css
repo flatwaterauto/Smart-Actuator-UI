@@ -1,0 +1,17 @@
+.QuickTableBody {
+	font-family: arial, sans-serif;
+	width: 80%;
+	margin-left: 10%;
+}
+
+td.QuickTableElement,
+th.QuickTableElement {
+	border: 1px solid #dddddd;
+	text-align: left;
+	padding: 8px;
+	text-align: center;
+}
+
+tr.QuickTableElement:nth-child(even) {
+	background-color: #dddddd;
+}

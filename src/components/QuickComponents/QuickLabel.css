@@ -1,0 +1,7 @@
+.QuickLabelBody {
+	display: inline-flex;
+	align-items: center;
+	vertical-align: middle;
+	padding-top: 10px;
+	padding-bottom: 10px;
+}

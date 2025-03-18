@@ -1,0 +1,10 @@
+.console {
+	background-color: black;
+	color: #4ade80;
+	padding: 1rem;
+	border-radius: 0.25rem;
+	font-family: monospace;
+	font-size: 0.875rem;
+	height: 8rem;
+	overflow: auto;
+}

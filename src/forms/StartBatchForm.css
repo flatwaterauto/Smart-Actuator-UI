@@ -1,0 +1,18 @@
+.form-content {
+	display: flex;
+	flex-direction: column;
+	gap: 1.5rem;
+	margin-top: 2rem;
+}
+
+.form-group {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+}
+
+.form-group select,
+.form-group input {
+	padding: 0.5rem;
+	font-size: 1rem;
+}

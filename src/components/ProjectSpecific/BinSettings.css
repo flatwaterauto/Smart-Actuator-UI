@@ -1,0 +1,99 @@
+.bin-settings {
+	max-width: 100%;
+	padding: 0.5rem 1rem;
+}
+
+.bin-item {
+	margin-bottom: 1rem;
+}
+
+.bin-item div {
+	margin: 0.5rem 0;
+	display: flex;
+	align-items: flex-start;
+	gap: 0.5rem;
+	flex-wrap: wrap;
+	padding: 0;
+	justify-content: space-between;
+}
+
+.bin-item label {
+	min-width: 100px;
+	margin-right: auto;
+}
+
+.bin-item input {
+	width: 180px;
+	padding: 0.5rem;
+}
+
+hr {
+	margin: 1rem 0;
+	border: none;
+	border-top: 1px solid #ccc;
+}
+
+.bin-header {
+	padding: 0.5rem;
+	background-color: #f0f0f0;
+	cursor: pointer;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	border-radius: 4px;
+	min-height: 40px;
+	position: relative;
+	padding-right: 32px; /* Make room for arrow */
+}
+
+.bin-header span:first-child {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.bin-header:hover {
+	background-color: #e0e0e0;
+}
+
+.collapse-arrow {
+	font-size: 12px;
+	transition: transform 0.2s ease;
+	position: absolute;
+	right: 12px;
+	top: 50%;
+	transform-origin: center;
+	transform: translateY(-50%);
+}
+
+.collapse-arrow.expanded {
+	transform: translateY(-50%) rotate(180deg);
+}
+
+.bin-content {
+	padding: 0.5rem;
+}
+
+@media screen and (max-width: 480px) {
+	.bin-settings {
+		padding: 0.5rem;
+	}
+
+	.bin-item div {
+		flex-direction: column;
+		align-items: stretch;
+		justify-content: stretch;
+	}
+
+	.bin-item label {
+		min-width: unset;
+	}
+
+	.bin-item input {
+		width: 100%;
+	}
+
+	.bin-header {
+		padding-right: 32px; /* Ensure consistent spacing for arrow */
+	}
+}
