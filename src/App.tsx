@@ -35,7 +35,7 @@ const stringToForm: Record<string, FormList> = Object.entries(
 function App() {
 	const [currentForm, setCurrentForm] = useEnumUrlParams(
 		"menu",
-		FormList.Main,
+		FormList.Login,
 		formToString,
 		stringToForm
 	);
