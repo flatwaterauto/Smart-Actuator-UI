@@ -69,7 +69,7 @@ export function RecipeSettings({ dataManager }: RecipeSettingsProps) {
 		const newIngredients = [...editingRecipe.ingredients];
 		newIngredients[index] = {
 			...newIngredients[index],
-			[field]: field === "quanity" ? Number(value) : value,
+			[field]: field === "quantity" ? Number(value) : value,
 		};
 		setEditingRecipe({
 			...editingRecipe,
@@ -144,7 +144,7 @@ export function RecipeSettings({ dataManager }: RecipeSettingsProps) {
 										type="number"
 										value={ingredient.quantity}
 										onChange={(e) =>
-											handleUpdateIngredient(index, "quanity", e.target.value)
+											handleUpdateIngredient(index, "quantity", e.target.value)
 										}
 										placeholder="Amount"
 										min="0"
