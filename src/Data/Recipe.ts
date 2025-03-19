@@ -14,7 +14,7 @@ export type ValidIngredientName =
 
 export interface Ingredient {
 	name: ValidIngredientName;
-	quanity: number;
+	quantity: number;
 }
 
 export interface Recipe {

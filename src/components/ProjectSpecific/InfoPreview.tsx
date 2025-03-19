@@ -6,20 +6,21 @@ interface InfoPreviewProps {
 }
 
 function InfoPreview({ dataManager }: InfoPreviewProps) {
-	//get the current batch name
 	const recipeID = dataManager.batch().getCurrentBatch()?.recipeId || -1;
-
 	const recipeName = dataManager.recipe().getRecipe(recipeID)?.name || "None";
-
 	const recipeQty = dataManager.batch().getCurrentBatch()?.quantity || -1;
+
+	const binType = dataManager.liveData().getCurrentBinType() || "None";
+	const lastIngredient = dataManager.liveData().getLastIngredient() || "None";
+	const currentWeight = dataManager.liveData().getCurrentWeight();
 
 	return (
 		<div className="info-preview">
 			<p>Current Recipe: {recipeName}</p>
 			<p>Batch Size: {recipeQty} lbs</p>
-			<p>Current Bin Type: Flax </p>
-			<p>Last Ingredient Added: Wheat</p>
-			<p>Current Weight: 1753 lbs</p>
+			<p>Current Bin Type: {binType}</p>
+			<p>Last Ingredient Added: {lastIngredient}</p>
+			<p>Current Weight: {currentWeight} lbs</p>
 		</div>
 	);
 }

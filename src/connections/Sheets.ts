@@ -10,9 +10,9 @@ export const importRecipe = async (): Promise<ImportedRecipe> => {
 	return {
 		name: "Imported Recipe",
 		ingredients: [
-			{ name: "Wheat", quanity: 50 },
-			{ name: "Barley", quanity: 30 },
-			{ name: "Peas", quanity: 20 },
+			{ name: "Wheat", quantity: 50 },
+			{ name: "Barley", quantity: 30 },
+			{ name: "Peas", quantity: 20 },
 		],
 	};
 };

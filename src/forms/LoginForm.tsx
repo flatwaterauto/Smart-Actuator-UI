@@ -1,9 +1,10 @@
-import { useEffect } from "react";
+import { useState } from "react";
 import "./LoginForm.css";
 import Spinner from "../components/ProjectSpecific/Spinner";
 import ErrorConsole from "../components/ProjectSpecific/ErrorConsole";
-import { isConnected } from "../connections/BleManager";
+import { isConnected } from "../connections/BleEndpoints";
 import FormLayout from "../components/Layout/FormLayout";
+import { useGlobalContext } from "../contexts/GlobalContext";
 
 interface Props {
 	error?: string;
@@ -11,21 +12,39 @@ interface Props {
 }
 
 function LoginForm({ error, onConnected }: Props) {
-	useEffect(() => {
-		const checkConnection = async () => {
-			const connected = await isConnected();
+	const globalContext = useGlobalContext();
+	const [isConnecting, setIsConnecting] = useState(false);
+
+	const handleConnect = async () => {
+		setIsConnecting(true);
+		try {
+			const connected = await isConnected(globalContext);
 			if (connected) {
 				onConnected();
 			}
-		};
-		checkConnection();
-	}, [onConnected]);
+		} finally {
+			setIsConnecting(false);
+		}
+	};
 
 	return (
-		<FormLayout title="Connecting to Brain">
+		<FormLayout title="Connect to Brain">
 			<div className="login-box">
-				<Spinner />
-				<ErrorConsole message={error} />
+				{isConnecting ? (
+					<>
+						<Spinner />
+						<ErrorConsole message="Connecting..." />
+					</>
+				) : (
+					<>
+						<center>
+							<button className="standard-button" onClick={handleConnect}>
+								Connect to Device
+							</button>
+						</center>
+						<ErrorConsole message={error} />
+					</>
+				)}
 			</div>
 		</FormLayout>
 	);

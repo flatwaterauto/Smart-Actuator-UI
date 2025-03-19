@@ -1,15 +1,17 @@
 import { useState } from "react";
 import FormLayout from "../components/Layout/FormLayout";
-import { startUnloading } from "../connections/BleManager";
+import { startUnloading } from "../connections/BleEndpoints";
 import "./UnloadingForm.css";
 import "../components/Layout/Formatting.css";
 import Spinner from "../components/ProjectSpecific/Spinner";
+import { useGlobalContext } from "../contexts/GlobalContext";
 
 interface UnloadingFormProps {
 	onBack: () => void;
 }
 
 function UnloadingForm({ onBack }: UnloadingFormProps) {
+	const globalContext = useGlobalContext();
 	const [quantity, setQuantity] = useState(2000);
 	const [isLoading, setIsLoading] = useState(false);
 
@@ -17,7 +19,7 @@ function UnloadingForm({ onBack }: UnloadingFormProps) {
 		e.preventDefault();
 		setIsLoading(true);
 		try {
-			const success = await startUnloading(quantity);
+			const success = await startUnloading(globalContext, quantity);
 			if (success) {
 				onBack();
 			}

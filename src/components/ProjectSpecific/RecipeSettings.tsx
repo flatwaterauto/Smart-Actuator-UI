@@ -55,7 +55,7 @@ export function RecipeSettings({ dataManager }: RecipeSettingsProps) {
 			...editingRecipe,
 			ingredients: [
 				...editingRecipe.ingredients,
-				{ name: "Wheat", quanity: 0 },
+				{ name: "Wheat", quantity: 0 },
 			],
 		});
 	};
@@ -142,7 +142,7 @@ export function RecipeSettings({ dataManager }: RecipeSettingsProps) {
 								<div className="ingredient-actions">
 									<input
 										type="number"
-										value={ingredient.quanity}
+										value={ingredient.quantity}
 										onChange={(e) =>
 											handleUpdateIngredient(index, "quanity", e.target.value)
 										}

@@ -12,27 +12,27 @@ export class RecipeHandler {
 		this.addRecipe({
 			name: "Layer",
 			ingredients: [
-				{ name: "Wheat", quanity: 75 },
-				{ name: "Flax", quanity: 25 },
-				{ name: "Peas", quanity: 100 },
+				{ name: "Wheat", quantity: 75 },
+				{ name: "Flax", quantity: 25 },
+				{ name: "Peas", quantity: 100 },
 			],
 		});
 
 		this.addRecipe({
 			name: "Grower",
 			ingredients: [
-				{ name: "Wheat", quanity: 50 },
-				{ name: "Flax", quanity: 50 },
-				{ name: "Peas", quanity: 100 },
+				{ name: "Wheat", quantity: 50 },
+				{ name: "Flax", quantity: 50 },
+				{ name: "Peas", quantity: 100 },
 			],
 		});
 
 		this.addRecipe({
 			name: "Starter",
 			ingredients: [
-				{ name: "Wheat", quanity: 25 },
-				{ name: "Flax", quanity: 75 },
-				{ name: "Peas", quanity: 100 },
+				{ name: "Wheat", quantity: 25 },
+				{ name: "Flax", quantity: 75 },
+				{ name: "Peas", quantity: 100 },
 			],
 		});
 	}

@@ -1,42 +1,79 @@
 import { useEffect, useState } from "react";
-import { getBinSettings, saveBinSettings } from "../../connections/BleManager";
+import {
+	requestBinSettings,
+	editBinSettings,
+} from "../../connections/BleEndpoints";
 import "./BinSettings.css";
 import Spinner from "./Spinner";
+import { useGlobalContext } from "../../contexts/GlobalContext";
+import { DataManager } from "../../Data/DataManager";
+import { Bin } from "../../Data/Handlers/BinSettingsHandler";
 
-interface Bin {
-	id: number;
-	ingredient: string;
-	resistorValue: number;
-}
+const BIN_SETTINGS_TIMEOUT = 5000; // 5 seconds timeout
+const BIN_SETTINGS_POLL_INTERVAL = 100; // Check every 100ms
 
-export function BinSettings() {
-	const [bins, setBins] = useState<Bin[]>([]);
+export function BinSettings({ dataManager }: { dataManager: DataManager }) {
+	const globalContext = useGlobalContext();
 	const [isSaving, setIsSaving] = useState(false);
+	const [isLoading, setIsLoading] = useState(false);
 	const [expandedBins, setExpandedBins] = useState<Set<number>>(new Set());
 
-	useEffect(() => {
-		loadBinSettings();
-	}, []);
+	const handleLoadSettings = async () => {
+		setIsLoading(true);
+		try {
+			dataManager.binSettings().markAsNotUpdated();
+			const success = await requestBinSettings(globalContext);
+			if (!success) {
+				globalContext.handleError("Failed to send bin settings request");
+				return;
+			}
 
-	const loadBinSettings = async () => {
-		const settings = await getBinSettings();
-		setBins(settings);
+			await Promise.race([
+				(async () => {
+					while (!dataManager.binSettings().isUpdated()) {
+						await new Promise((resolve) =>
+							setTimeout(resolve, BIN_SETTINGS_POLL_INTERVAL)
+						);
+					}
+				})(),
+				new Promise((_, reject) =>
+					setTimeout(() => reject(new Error("Timeout")), BIN_SETTINGS_TIMEOUT)
+				),
+			]);
+		} catch (error) {
+			globalContext.handleError(
+				error instanceof Error
+					? error.message
+					: "Failed to get response from device"
+			);
+		} finally {
+			setIsLoading(false);
+		}
 	};
 
 	const handleBinChange = (
-		index: number,
+		bin: Bin,
 		field: keyof Bin,
 		value: string | number
 	) => {
-		const updatedBins = [...bins];
-		updatedBins[index] = { ...updatedBins[index], [field]: value };
-		setBins(updatedBins);
+		dataManager.binSettings().updateBinSetting({
+			...bin,
+			[field]: value,
+		});
 	};
 
 	const handleSave = async () => {
 		setIsSaving(true);
 		try {
-			await saveBinSettings(bins);
+			const bins = dataManager.binSettings().getBinSettings();
+			const success = await editBinSettings(globalContext, bins);
+			if (!success) {
+				globalContext.handleError("Failed to save bin settings");
+			}
+		} catch (error) {
+			globalContext.handleError(
+				error instanceof Error ? error.message : String(error)
+			);
 		} finally {
 			setIsSaving(false);
 		}
@@ -54,9 +91,29 @@ export function BinSettings() {
 		});
 	};
 
+	const bins = dataManager.binSettings().getBinSettings();
+
 	return (
 		<div className="bin-settings">
-			{bins.map((bin, index) => (
+			<button
+				className="standard-button"
+				onClick={handleLoadSettings}
+				disabled={isLoading}
+				style={{ marginBottom: "1rem" }}
+			>
+				{isLoading ? (
+					<>
+						Loading Settings...
+						<br />
+						<br />
+						<Spinner />
+					</>
+				) : (
+					"Load Bin Settings"
+				)}
+			</button>
+
+			{bins.map((bin) => (
 				<div key={bin.id} className="bin-item">
 					<div className="bin-header" onClick={() => toggleBin(bin.id)}>
 						<span>
@@ -78,7 +135,7 @@ export function BinSettings() {
 									type="text"
 									value={bin.ingredient}
 									onChange={(e) =>
-										handleBinChange(index, "ingredient", e.target.value)
+										handleBinChange(bin, "ingredient", e.target.value)
 									}
 								/>
 							</div>
@@ -89,7 +146,7 @@ export function BinSettings() {
 									value={bin.resistorValue}
 									onChange={(e) =>
 										handleBinChange(
-											index,
+											bin,
 											"resistorValue",
 											Number(e.target.value)
 										)
@@ -105,13 +162,15 @@ export function BinSettings() {
 				onClick={handleSave}
 				disabled={isSaving}
 			>
-				{isSaving ? "Saving..." : "Save Changes"}
-				{isSaving && (
+				{isSaving ? (
 					<>
+						Saving...
 						<br />
 						<br />
 						<Spinner />
 					</>
+				) : (
+					"Save Changes"
 				)}
 			</button>
 		</div>
