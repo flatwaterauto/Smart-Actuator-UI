@@ -5,19 +5,12 @@ import ErrorForm from "./forms/ErrorForm";
 import StartBatchForm from "./forms/StartBatchForm";
 import SettingsForm from "./forms/SettingsForm";
 import UnloadingForm from "./forms/UnloadingForm";
+import ConsoleForm from "./forms/ConsoleForm";
 import { DataManager } from "./Data/DataManager";
 import { useEnumUrlParams } from "./helper/UrlParams";
 import { BleManager } from "./connections/BleManager";
 import { GlobalProvider } from "./contexts/GlobalContextProvider";
-
-const enum FormList {
-	Login,
-	Main,
-	Error,
-	Start_Batch,
-	Settings,
-	Unloading,
-}
+import { FormList } from "./Data/FormList";
 
 const formToString: Record<FormList, string> = {
 	[FormList.Login]: "login",
@@ -26,6 +19,7 @@ const formToString: Record<FormList, string> = {
 	[FormList.Start_Batch]: "start-batch",
 	[FormList.Settings]: "settings",
 	[FormList.Unloading]: "unloading",
+	[FormList.Console]: "console",
 };
 
 const stringToForm: Record<string, FormList> = Object.entries(
@@ -44,10 +38,10 @@ function App() {
 
 	const handleError = useCallback(
 		(errorMessage: string) => {
-			dataManager.error().setError(errorMessage);
+			dataManager.error().setError(errorMessage, currentForm);
 			setCurrentForm(FormList.Error);
 		},
-		[dataManager, setCurrentForm]
+		[dataManager, setCurrentForm, currentForm]
 	);
 
 	const handleConnectionSuccess = () => {
@@ -78,7 +72,9 @@ function App() {
 				return (
 					<ErrorForm
 						error={dataManager.error().getError()?.message ?? "Unknown error"}
-						onTryAgain={() => setCurrentForm(FormList.Login)}
+						onTryAgain={() =>
+							setCurrentForm(dataManager.error().getError().previousForm)
+						}
 					/>
 				);
 			case FormList.Start_Batch:
@@ -97,6 +93,13 @@ function App() {
 				);
 			case FormList.Unloading:
 				return <UnloadingForm onBack={() => setCurrentForm(FormList.Main)} />;
+			case FormList.Console:
+				return (
+					<ConsoleForm
+						onBack={() => setCurrentForm(FormList.Main)}
+						dataManager={dataManager}
+					/>
+				);
 		}
 	}
 

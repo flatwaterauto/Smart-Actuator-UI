@@ -3,39 +3,6 @@ import type { Recipe } from "../Data/Recipe";
 import { GlobalContextType } from "../contexts/GlobalContext";
 import { Bin } from "../Data/Handlers/BinSettingsHandler";
 
-// interface Bin {
-// 	id: number;
-// 	ingredient: string;
-// 	resistorValue: number;
-// }
-
-// // Test data storage
-// let savedBins: Bin[] = [
-// 	{ id: 1, ingredient: "Wheat", resistorValue: 100 },
-// 	{ id: 2, ingredient: "Corn", resistorValue: 200 },
-// 	{ id: 3, ingredient: "Soy", resistorValue: 300 },
-// 	{ id: 4, ingredient: "Barley", resistorValue: 400 },
-// ];
-
-//#region planning
-
-// phone to esp32
-// isconnected
-// start batch (full rcipe, quantity)
-// stop batch
-// start unload (quantity)
-// edit bin settings (list of modified bins)
-// send console command (string)
-
-// phone to esp32 and back
-// bin settings (list of all bins)
-
-// esp32 to phone (notifies)
-// current bin type (string)
-// current scale weight (number)
-
-//#endregion planning
-
 //#region phone to esp32
 
 export async function isConnected(
@@ -183,16 +150,6 @@ export async function editBinSettings(
 	}
 }
 
-// send a console command
-export function sendConsoleCommand(command: string): Promise<boolean> {
-	console.log("Sending console command:", command);
-	return new Promise((resolve) => {
-		setTimeout(() => {
-			resolve(true);
-		}, 1000);
-	});
-}
-
 //#endregion phone to esp32
 
 //#region phone to esp32 and back
@@ -213,26 +170,26 @@ export async function requestBinSettings(
 
 //#endregion phone to esp32 and back
 
-//#region esp32 to phone (notifies)
+//#region console commands
 
-// get the current bin type
-// export function getCurrentBinType(): Promise<string> {
-// 	console.log("Getting current bin type...");
-// 	return new Promise((resolve) => {
-// 		setTimeout(() => {
-// 			resolve("Wheat");
-// 		}, 1000);
-// 	});
-// }
+export async function sendConsoleCommand(
+	context: GlobalContextType,
+	command: string
+): Promise<boolean> {
+	const { bleManager, handleError } = context;
+	try {
+		const encoder = new TextEncoder();
+		const commandBytes = encoder.encode(command);
+		const buffer = new ArrayBuffer(commandBytes.length);
+		const view = new Uint8Array(buffer);
+		view.set(commandBytes);
 
-// // get the current scale weight
-// export function getCurrentScaleWeight(): Promise<number> {
-// 	console.log("Getting current scale weight...");
-// 	return new Promise((resolve) => {
-// 		setTimeout(() => {
-// 			resolve(100);
-// 		}, 1000);
-// 	});
-// }
+		await bleManager.sendConsoleCommand(buffer);
+		return true;
+	} catch (error) {
+		handleError(error instanceof Error ? error.message : String(error));
+		return false;
+	}
+}
 
-//#endregion esp32 to phone
+//#endregion console commands

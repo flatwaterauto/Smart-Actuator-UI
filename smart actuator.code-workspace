@@ -2,6 +2,12 @@
 	"folders": [
 		{
 			"path": "."
+		},
+		{
+			"path": "../../../Repository/Custom-Arduino-Libraies/WirelessSerial/docs"
+		},
+		{
+			"path": "../../../../Documents/PlatformIO/Projects/Smart actuator/docs"
 		}
 	],
 	"settings": {}

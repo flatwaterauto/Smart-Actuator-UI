@@ -3,6 +3,7 @@ import { DataManager } from "../Data/DataManager";
 const SERVICE_UUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
 const ESP_TO_PHONE_UUID = "beb5483e-36e1-4688-b7f5-ea07361b26a7";
 const PHONE_TO_ESP_UUID = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
+const CONSOLE_UUID = "4e45d7b4-51f5-434d-a57c-27ba0e693ebf";
 
 export enum CommandId {
 	IsConnected = "c",
@@ -21,6 +22,7 @@ export class BleManager {
 	private isConnected: boolean = false;
 	private phoneToEspChar: BluetoothRemoteGATTCharacteristic | null = null;
 	private espToPhoneChar: BluetoothRemoteGATTCharacteristic | null = null;
+	private consoleChar: BluetoothRemoteGATTCharacteristic | null = null;
 
 	constructor(dataManager: DataManager) {
 		this.dataManager = dataManager;
@@ -55,10 +57,12 @@ export class BleManager {
 			// Get characteristics
 			this.phoneToEspChar = await service.getCharacteristic(PHONE_TO_ESP_UUID);
 			this.espToPhoneChar = await service.getCharacteristic(ESP_TO_PHONE_UUID);
+			this.consoleChar = await service.getCharacteristic(CONSOLE_UUID);
 
 			// Start notifications for both characteristics
 			await this.espToPhoneChar.startNotifications();
 			await this.phoneToEspChar.startNotifications();
+			await this.consoleChar.startNotifications();
 
 			this.espToPhoneChar.addEventListener(
 				"characteristicvaluechanged",
@@ -68,6 +72,11 @@ export class BleManager {
 			this.phoneToEspChar.addEventListener(
 				"characteristicvaluechanged",
 				this.handlePhoneToEspNotification.bind(this)
+			);
+
+			this.consoleChar.addEventListener(
+				"characteristicvaluechanged",
+				this.handleConsoleNotification.bind(this)
 			);
 
 			this.isConnected = true;
@@ -117,7 +126,8 @@ export class BleManager {
 					break;
 				}
 
-				case "S": { // Scale Weight Block
+				case "S": {
+					// Scale Weight Block
 					const weight = value.getInt16(offset, false); // big-endian
 					this.dataManager.liveData().setCurrentWeight(weight);
 					offset += 2;
@@ -164,6 +174,15 @@ export class BleManager {
 		this.dataManager.binSettings().setBinSettings(binSettings);
 	}
 
+	private handleConsoleNotification(event: Event): void {
+		const value = (event.target as BluetoothRemoteGATTCharacteristic).value;
+		if (!value) return;
+
+		const decoder = new TextDecoder();
+		const text = decoder.decode(value);
+		this.dataManager.console().addOutput(text);
+	}
+
 	async sendCommand(command: CommandId, data?: ArrayBuffer): Promise<void> {
 		if (!this.isConnected) {
 			try {
@@ -184,5 +203,25 @@ export class BleManager {
 			: commandByte;
 
 		await this.phoneToEspChar.writeValueWithResponse(finalData);
+	}
+
+	async sendConsoleCommand(data: ArrayBuffer): Promise<void> {
+		if (!this.isConnected) {
+			try {
+				await this.startScanning();
+				await this.connect();
+			} catch (error) {
+				throw new Error(`Failed to establish connection: ${error}`);
+			}
+		}
+
+		if (!this.consoleChar) {
+			throw new Error("Console characteristic not available");
+		}
+
+		await this.consoleChar.writeValueWithResponse(data);
+		const decoder = new TextDecoder();
+		const text = decoder.decode(data);
+		this.dataManager.console().addCommand(text);
 	}
 }
