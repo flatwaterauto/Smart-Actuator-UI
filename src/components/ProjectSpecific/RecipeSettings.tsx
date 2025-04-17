@@ -1,5 +1,11 @@
 import { useState } from "react";
-import { Recipe, Ingredient } from "../../Data/Recipe";
+import {
+	Recipe,
+	Ingredient,
+	getIngredientName,
+	getAllIngredientIds,
+	ingredientMapping,
+} from "../../Data/Recipe";
 import { importRecipe } from "../../connections/Sheets";
 import "./RecipeSettings.css";
 import { DataManager } from "../../Data/DataManager";
@@ -55,7 +61,7 @@ export function RecipeSettings({ dataManager }: RecipeSettingsProps) {
 			...editingRecipe,
 			ingredients: [
 				...editingRecipe.ingredients,
-				{ name: "Wheat", quantity: 0 },
+				{ id: 1, quantity: 0 }, // Default to Wheat (id: 1)
 			],
 		});
 	};
@@ -69,7 +75,7 @@ export function RecipeSettings({ dataManager }: RecipeSettingsProps) {
 		const newIngredients = [...editingRecipe.ingredients];
 		newIngredients[index] = {
 			...newIngredients[index],
-			[field]: field === "quantity" ? Number(value) : value,
+			[field]: field === "quantity" ? Number(value) : Number(value),
 		};
 		setEditingRecipe({
 			...editingRecipe,
@@ -131,14 +137,18 @@ export function RecipeSettings({ dataManager }: RecipeSettingsProps) {
 						<h3>Ingredients*</h3>
 						{editingRecipe.ingredients.map((ingredient, index) => (
 							<div key={index} className="ingredient-item">
-								<input
-									type="text"
-									value={ingredient.name}
+								<select
+									value={ingredient.id}
 									onChange={(e) =>
-										handleUpdateIngredient(index, "name", e.target.value)
+										handleUpdateIngredient(index, "id", e.target.value)
 									}
-									placeholder="Ingredient name"
-								/>
+								>
+									{getAllIngredientIds().map((id) => (
+										<option key={id} value={id}>
+											{getIngredientName(id)}
+										</option>
+									))}
+								</select>
 								<div className="ingredient-actions">
 									<input
 										type="number"

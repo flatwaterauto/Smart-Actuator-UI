@@ -24,7 +24,20 @@
 
 .bin-item input {
 	width: 180px;
-	padding: 0.5rem;
+}
+
+.bin-item input[type="number"] {
+	width: 120px;
+}
+
+.bin-item .checkbox-group {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+}
+
+.bin-item .checkbox-group input[type="checkbox"] {
+	width: auto;
 }
 
 hr {
@@ -71,7 +84,10 @@ hr {
 }
 
 .bin-content {
-	padding: 0.5rem;
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+	gap: 1rem;
+	padding: 1rem;
 }
 
 @media screen and (max-width: 480px) {

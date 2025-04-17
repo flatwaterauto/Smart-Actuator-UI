@@ -27,50 +27,66 @@ export async function startBatch(
 	try {
 		const encoder = new TextEncoder();
 		const recipeNameBytes = encoder.encode(recipe.name);
+		const scale = quantity / 2000; // Calculate scaling factor
 
 		// Calculate total buffer size
-		let totalSize = 2; // Command + recipe name length
-		totalSize += recipeNameBytes.length; // Recipe name
-		totalSize += 2; // Total quantity
-		totalSize += 1; // Number of ingredients
-		for (const ingredient of recipe.ingredients) {
-			totalSize += 1; // Ingredient name length
-			totalSize += encoder.encode(ingredient.name).length; // Ingredient name
-			totalSize += 2; // Ingredient quantity
-		}
+		const totalSize =
+			1 + // Recipe name length byte
+			recipeNameBytes.length + // Recipe name
+			1 + // Number of ingredients
+			recipe.ingredients.length * 3; // Each ingredient: 1 byte ID + 2 bytes quantity
 
 		const buffer = new ArrayBuffer(totalSize);
 		const view = new DataView(buffer);
 		let offset = 0;
 
-		// Write command ID
-		view.setUint8(offset++, "b".charCodeAt(0));
-
-		// Write recipe name
+		// Write recipe name length and name
 		view.setUint8(offset++, recipeNameBytes.length);
 		new Uint8Array(buffer, offset, recipeNameBytes.length).set(recipeNameBytes);
 		offset += recipeNameBytes.length;
 
-		// Write total batch quantity
-		view.setUint16(offset, quantity, false);
-		offset += 2;
-
 		// Write number of ingredients
 		view.setUint8(offset++, recipe.ingredients.length);
 
-		// Write each ingredient
+		// Write each ingredient with scaled quantities
 		for (const ingredient of recipe.ingredients) {
-			const ingredientNameBytes = encoder.encode(ingredient.name);
-			view.setUint8(offset++, ingredientNameBytes.length);
-			new Uint8Array(buffer, offset, ingredientNameBytes.length).set(
-				ingredientNameBytes
-			);
-			offset += ingredientNameBytes.length;
-			view.setUint16(offset, ingredient.quantity, false);
+			view.setUint8(offset++, ingredient.id); // Ingredient ID (1-12)
+			const scaledQuantity = Math.round(ingredient.quantity * scale);
+			view.setUint16(offset, scaledQuantity, false); // big-endian
 			offset += 2;
 		}
 
+		// Print buffer contents
+		console.log("===== Buffer Contents =====");
+		console.log("Total size:", totalSize, "bytes");
+		console.log("Recipe name:", recipe.name);
+
+		const bufferArray = new Uint8Array(buffer);
+		console.log("Raw bytes:", Array.from(bufferArray));
+
+		// Print detailed byte interpretation
+		console.log("\nDetailed byte breakdown:");
+		console.log(`Recipe name length: ${bufferArray[0]}`);
+		console.log(
+			`Recipe name: ${new TextDecoder().decode(
+				bufferArray.slice(1, 1 + bufferArray[0])
+			)}`
+		);
+		console.log(`Number of ingredients: ${bufferArray[1 + bufferArray[0]]}`);
+
+		// Print ingredients
+		let pos = 2 + bufferArray[0];
+		console.log("\nIngredients:");
+		for (let i = 0; i < recipe.ingredients.length; i++) {
+			const id = bufferArray[pos];
+			const quantity = (bufferArray[pos + 1] << 8) | bufferArray[pos + 2];
+			console.log(`Ingredient ${i + 1}: ID=${id}, Quantity=${quantity}`);
+			pos += 3;
+		}
+		console.log("========================");
+
 		await bleManager.sendCommand(CommandId.StartBatch, buffer);
+		console.log("Batch started with scale factor:", scale);
 		return true;
 	} catch (error) {
 		handleError(error instanceof Error ? error.message : String(error));
@@ -115,31 +131,35 @@ export async function editBinSettings(
 ): Promise<boolean> {
 	const { bleManager, handleError } = context;
 	try {
-		const encoder = new TextEncoder();
-		let totalSize = 2;
-
-		for (const bin of bins) {
-			totalSize += 6 + bin.ingredient.length;
-		}
-
+		// Calculate total buffer size:
+		// 1 byte command + 1 byte num bins +
+		// (1 byte id + 1 byte ingredient id + 8 bytes resistance + 2 bytes open time +
+		//  2 bytes slow down time + 4 bytes auger offset + 4 bytes auger offset count +
+		//  1 byte offset locked) * number of bins
+		const totalSize = 2 + bins.length * 23;
 		const buffer = new ArrayBuffer(totalSize);
 		const view = new DataView(buffer);
 		let offset = 0;
 
+		// Write command ID and number of bins
 		view.setUint8(offset++, "e".charCodeAt(0));
 		view.setUint8(offset++, bins.length);
 
+		// Write each bin's data
 		for (const bin of bins) {
 			view.setUint8(offset++, bin.id);
-			view.setFloat32(offset, bin.resistorValue, false);
+			view.setUint8(offset++, bin.ingredientId);
+			view.setFloat64(offset, bin.resistance, false); // 8 bytes, big-endian
+			offset += 8;
+			view.setUint16(offset, bin.openTime, false);
+			offset += 2;
+			view.setUint16(offset, bin.slowDownTime, false);
+			offset += 2;
+			view.setUint32(offset, bin.augerOffset, false);
 			offset += 4;
-
-			const ingredientBytes = encoder.encode(bin.ingredient);
-			view.setUint8(offset++, ingredientBytes.length);
-			new Uint8Array(buffer, offset, ingredientBytes.length).set(
-				ingredientBytes
-			);
-			offset += ingredientBytes.length;
+			view.setUint32(offset, bin.augerOffsetCount, false);
+			offset += 4;
+			view.setUint8(offset++, bin.offsetLocked ? 1 : 0);
 		}
 
 		await bleManager.sendCommand(CommandId.EditBinSettings, buffer);

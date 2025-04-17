@@ -16,23 +16,24 @@ function ConsoleForm({ onBack, dataManager }: ConsoleFormProps) {
 	const [command, setCommand] = useState("");
 	const [selectedCommand, setSelectedCommand] = useState("");
 	const [parameters, setParameters] = useState<Record<number, string>>({});
-	const [, setForceUpdate] = useState(false);
+	const [entries, setEntries] = useState(dataManager.console().getAllEntries());
 	const availableCommands = dataManager.console().getAvailableCommands();
 
 	useEffect(() => {
 		const handleUpdate = () => {
-			// Force re-render when entries change
-			setForceUpdate((prev) => !prev);
+			setEntries(dataManager.console().getAllEntries());
 		};
 
 		dataManager.console().addListener(handleUpdate);
 		return () => dataManager.console().removeListener(handleUpdate);
 	}, [dataManager]);
 
-	// Add new useEffect to initialize dropdown values when command changes
-	useEffect(() => {
-		if (selectedCommand) {
-			const params = availableCommands[selectedCommand];
+	// Handle parameter initialization in the onChange handler instead of useEffect
+	const handleCommandSelect = (newCommand: string) => {
+		setSelectedCommand(newCommand);
+
+		if (newCommand) {
+			const params = availableCommands[newCommand];
 			if (params) {
 				const initialValues = params.reduce((acc, param, index) => {
 					if (
@@ -48,8 +49,10 @@ function ConsoleForm({ onBack, dataManager }: ConsoleFormProps) {
 				}, {} as Record<number, string>);
 				setParameters(initialValues);
 			}
+		} else {
+			setParameters({});
 		}
-	}, [selectedCommand, availableCommands]);
+	};
 
 	const handleParameterChange = (index: number, value: string) => {
 		setParameters((prev) => ({
@@ -125,8 +128,6 @@ function ConsoleForm({ onBack, dataManager }: ConsoleFormProps) {
 		}
 	};
 
-	const entries = dataManager.console().getAllEntries();
-
 	return (
 		<FormLayout title="Debug Console" onBack={onBack}>
 			<div className="console-form">
@@ -146,10 +147,7 @@ function ConsoleForm({ onBack, dataManager }: ConsoleFormProps) {
 					<select
 						className="command-selector"
 						value={selectedCommand}
-						onChange={(e) => {
-							setSelectedCommand(e.target.value);
-							setParameters({});
-						}}
+						onChange={(e) => handleCommandSelect(e.target.value)}
 					>
 						<option value="">Manual Command Entry</option>
 						{Object.keys(availableCommands).map((cmd) => (

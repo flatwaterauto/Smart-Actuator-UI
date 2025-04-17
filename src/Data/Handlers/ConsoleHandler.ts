@@ -71,6 +71,8 @@ export class ConsoleHandler {
 	// Available commands and their parameters
 	private availableCommands: CommandList = { ...testList };
 
+	private responseCallback: ((text: string) => void) | null = null;
+
 	// Adds a new command to the history
 	public addCommand(command: string): void {
 		this.commands.push({
@@ -89,8 +91,19 @@ export class ConsoleHandler {
 
 	// Adds a new output to the history
 	public addOutput(output: string): void {
-		// Check if output is a command list
-		if (output.startsWith("pong:")) {
+		if (output.startsWith("length")) {
+			// Send response through BLE
+			if (this.responseCallback) {
+				console.log("sending response: ", output.length);
+				this.responseCallback(`length:${output.length}`);
+			}
+			// Still log the original message
+			this.outputs.push({
+				text: output,
+				timestamp: new Date(),
+				type: "output",
+			});
+		} else if (output.startsWith("pong:")) {
 			// Add debug message showing original received string
 			console.log(output);
 
@@ -120,6 +133,10 @@ export class ConsoleHandler {
 		}
 
 		this.notifyListeners();
+	}
+
+	public setResponseCallback(callback: (text: string) => void): void {
+		this.responseCallback = callback;
 	}
 
 	public getAvailableCommands(): CommandList {
