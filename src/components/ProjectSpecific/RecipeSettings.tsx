@@ -4,7 +4,6 @@ import {
 	Ingredient,
 	getIngredientName,
 	getAllIngredientIds,
-	ingredientMapping,
 } from "../../Data/Recipe";
 import { importRecipe } from "../../connections/Sheets";
 import "./RecipeSettings.css";

@@ -69,7 +69,7 @@ function Checklist({
 	const calculateNextReset = (item: ChecklistItem): Date => {
 		if (!item.intervals.length) return normalizeDate(new Date());
 
-		const now = normalizeDate(getCurrentDate());
+		// const now = normalizeDate(getCurrentDate());
 		let nextReset = new Date(8640000000000000); // Far future date
 
 		item.intervals.forEach((interval) => {

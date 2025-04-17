@@ -5,7 +5,6 @@ import ErrorConsole from "../components/ProjectSpecific/ErrorConsole";
 import { isConnected } from "../connections/BleEndpoints";
 import FormLayout from "../components/Layout/FormLayout";
 import { useGlobalContext } from "../contexts/GlobalContext";
-import Checklist from "../components/ProjectSpecific/Checklist";
 
 interface Props {
 	error?: string;
