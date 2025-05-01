@@ -6,6 +6,7 @@ import StartBatchForm from "./forms/StartBatchForm";
 import SettingsForm from "./forms/SettingsForm";
 import UnloadingForm from "./forms/UnloadingForm";
 import ConsoleForm from "./forms/ConsoleForm";
+import DevelopersForm from "./forms/DevelopersForm";
 import { DataManager } from "./Data/DataManager";
 import { useEnumUrlParams } from "./helper/UrlParams";
 import { BleManager } from "./connections/BleManager";
@@ -20,6 +21,7 @@ const formToString: Record<FormList, string> = {
 	[FormList.Settings]: "settings",
 	[FormList.Unloading]: "unloading",
 	[FormList.Console]: "console",
+	[FormList.Developers]: "developers",
 };
 
 const stringToForm: Record<string, FormList> = Object.entries(
@@ -63,8 +65,8 @@ function App() {
 				return (
 					<MainForm
 						onStartBatch={() => setCurrentForm(FormList.Start_Batch)}
-						onSettings={() => setCurrentForm(FormList.Settings)}
 						onStartUnloading={() => setCurrentForm(FormList.Unloading)}
+						onDevelopers={() => setCurrentForm(FormList.Developers)}
 						dataManager={dataManager}
 					/>
 				);
@@ -87,7 +89,7 @@ function App() {
 			case FormList.Settings:
 				return (
 					<SettingsForm
-						onBack={() => setCurrentForm(FormList.Main)}
+						onBack={() => setCurrentForm(FormList.Developers)}
 						dataManager={dataManager}
 					/>
 				);
@@ -96,8 +98,16 @@ function App() {
 			case FormList.Console:
 				return (
 					<ConsoleForm
-						onBack={() => setCurrentForm(FormList.Main)}
+						onBack={() => setCurrentForm(FormList.Developers)}
 						dataManager={dataManager}
+					/>
+				);
+			case FormList.Developers:
+				return (
+					<DevelopersForm
+						onBack={() => setCurrentForm(FormList.Main)}
+						onSettings={() => setCurrentForm(FormList.Settings)}
+						onConsole={() => setCurrentForm(FormList.Console)}
 					/>
 				);
 		}

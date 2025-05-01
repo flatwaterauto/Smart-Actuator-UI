@@ -6,4 +6,5 @@ export enum FormList {
 	Settings,
 	Unloading,
 	Console,
+	Developers,
 }

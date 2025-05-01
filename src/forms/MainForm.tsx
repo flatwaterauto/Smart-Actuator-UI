@@ -6,12 +6,17 @@ import { DataManager } from "../Data/DataManager";
 
 interface Props {
 	onStartBatch: () => void;
-	onSettings: () => void;
 	onStartUnloading: () => void;
+	onDevelopers: () => void;
 	dataManager: DataManager;
 }
 
-function MainForm({ onStartBatch, onStartUnloading, dataManager }: Props) {
+function MainForm({
+	onStartBatch,
+	onStartUnloading,
+	onDevelopers,
+	dataManager,
+}: Props) {
 	const currentBatch = dataManager.batch().getCurrentBatch();
 
 	const handleBatchButton = () => {
@@ -33,6 +38,11 @@ function MainForm({ onStartBatch, onStartUnloading, dataManager }: Props) {
 				</button>
 			</div>
 			<InfoPreview dataManager={dataManager} />
+			<div className="button-container">
+				<button className="standard-button" onClick={onDevelopers}>
+					Developers
+				</button>
+			</div>
 		</FormLayout>
 	);
 }
