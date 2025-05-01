@@ -12,6 +12,7 @@ export interface ConsoleCommand extends BaseConsoleEntry {
 // Interface for output received from the console
 export interface ConsoleOutput extends BaseConsoleEntry {
 	type: "output"; // Discriminator to identify output entries
+	hidden?: boolean; // Flag to mark entries that shouldn't be displayed
 }
 
 // Union type of all possible console entry types
@@ -72,6 +73,8 @@ export class ConsoleHandler {
 	private availableCommands: CommandList = { ...testList };
 
 	private responseCallback: ((text: string) => void) | null = null;
+	private pongCallback: (() => void) | null = null;
+	private lastPageReceived: boolean = false;
 
 	// Adds a new command to the history
 	public addCommand(command: string): void {
@@ -104,20 +107,45 @@ export class ConsoleHandler {
 				type: "output",
 			});
 		} else if (output.startsWith("pong:")) {
-			// Add debug message showing original received string
-			console.log(output);
+			// Add debug message showing original received string (only in browser console)
+			console.log("Processing pong response:", output);
 
-			try {
-				const commandString = output.substring(5).trim(); // Remove "pong:" prefix
-				this.availableCommands = parseCommands(commandString);
-			} catch (error) {
-				this.outputs.push({
-					text: `Error parsing commands: ${
-						error instanceof Error ? error.message : String(error)
-					}`,
-					timestamp: new Date(),
-					type: "output",
-				});
+			// Check if this is just an empty "pong:" (last page)
+			const commandString = output.substring(5).trim(); // Remove "pong:" prefix
+			this.lastPageReceived = commandString.length === 0;
+			console.log("Is last page:", this.lastPageReceived);
+
+			if (!this.lastPageReceived) {
+				try {
+					const newCommands = parseCommands(commandString);
+					// Merge with existing commands instead of replacing
+					this.availableCommands = {
+						...this.availableCommands,
+						...newCommands,
+					};
+				} catch (error) {
+					// Log parsing errors to the output history
+					this.outputs.push({
+						text: `Error parsing commands: ${
+							error instanceof Error ? error.message : String(error)
+						}`,
+						timestamp: new Date(),
+						type: "output",
+					});
+				}
+			}
+
+			// Add pong responses to the output history with hidden flag
+			this.outputs.push({
+				text: output,
+				timestamp: new Date(),
+				type: "output",
+				hidden: true, // Mark as hidden so it won't be displayed in the UI
+			});
+
+			// Notify about the received page
+			if (this.pongCallback) {
+				this.pongCallback();
 			}
 		} else {
 			this.outputs.push({
@@ -137,6 +165,23 @@ export class ConsoleHandler {
 
 	public setResponseCallback(callback: (text: string) => void): void {
 		this.responseCallback = callback;
+	}
+
+	// Set a callback to be notified when a pong response is processed
+	public setPongCallback(callback: (() => void) | null): void {
+		this.pongCallback = callback;
+	}
+
+	// Check if the last page was received
+	public isLastPageReceived(): boolean {
+		return this.lastPageReceived;
+	}
+
+	// Clear available commands when starting a new request
+	public clearAvailableCommands(): void {
+		this.availableCommands = {};
+		this.lastPageReceived = false;
+		this.notifyListeners();
 	}
 
 	public getAvailableCommands(): CommandList {

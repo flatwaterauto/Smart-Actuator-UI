@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import FormLayout from "../components/Layout/FormLayout";
 import { sendConsoleCommand } from "../connections/BleEndpoints";
 import "./ConsoleForm.css";
@@ -18,17 +18,75 @@ function ConsoleForm({ onBack, dataManager }: ConsoleFormProps) {
 	const [parameters, setParameters] = useState<Record<number, string>>({});
 	const [entries, setEntries] = useState(dataManager.console().getAllEntries());
 	const availableCommands = dataManager.console().getAvailableCommands();
+	const [requestingCommands, setRequestingCommands] = useState(false);
+	const currentPageRef = useRef(0); // Start at page 0 instead of 1
+	const waitingForResponseRef = useRef(false);
+	const lastProcessedEntryRef = useRef<number>(0);
 
 	useEffect(() => {
 		const handleUpdate = () => {
 			setEntries(dataManager.console().getAllEntries());
+
+			// Check for new pong responses
+			if (requestingCommands && waitingForResponseRef.current) {
+				const allEntries = dataManager.console().getAllEntries();
+
+				// Log the entries for debugging
+				console.log(
+					"Current entries:",
+					allEntries.length,
+					"Last processed:",
+					lastProcessedEntryRef.current
+				);
+
+				// Check newest entries first for efficiency
+				for (
+					let i = allEntries.length - 1;
+					i >= lastProcessedEntryRef.current;
+					i--
+				) {
+					const entry = allEntries[i];
+
+					if (entry.type === "output" && entry.text.startsWith("pong:")) {
+						console.log("Found pong response:", entry.text, "at index", i);
+						lastProcessedEntryRef.current = allEntries.length;
+						handlePongReceived();
+						break; // Only process one pong at a time
+					}
+				}
+			}
 		};
 
 		dataManager.console().addListener(handleUpdate);
-		return () => dataManager.console().removeListener(handleUpdate);
-	}, [dataManager]);
+		return () => {
+			dataManager.console().removeListener(handleUpdate);
+		};
+	}, [dataManager, requestingCommands]);
 
-	// Handle parameter initialization in the onChange handler instead of useEffect
+	// Handle a received pong response
+	const handlePongReceived = () => {
+		// We got a response, no longer waiting
+		waitingForResponseRef.current = false;
+
+		const isLastPage = dataManager.console().isLastPageReceived();
+		console.log(
+			`Received page ${currentPageRef.current}, isLastPage: ${isLastPage}`
+		);
+
+		if (isLastPage) {
+			setRequestingCommands(false);
+			console.log("All command pages received");
+		} else {
+			// Request next page immediately since we already have the response
+			const nextPage = currentPageRef.current + 1;
+			console.log(`Preparing to request page ${nextPage}`);
+			currentPageRef.current = nextPage;
+
+			// Request the next page immediately without timeout
+			requestNextPage(nextPage);
+		}
+	};
+
 	const handleCommandSelect = (newCommand: string) => {
 		setSelectedCommand(newCommand);
 
@@ -77,8 +135,39 @@ function ConsoleForm({ onBack, dataManager }: ConsoleFormProps) {
 		setParameters({});
 	};
 
+	const requestNextPage = async (page: number) => {
+		console.log(
+			`Attempting to request page ${page}, waitingForResponse: ${waitingForResponseRef.current}`
+		);
+
+		// Only send if we're not already waiting for a response
+		if (!waitingForResponseRef.current) {
+			console.log(`Sending PING:${page} request`);
+			waitingForResponseRef.current = true;
+			try {
+				await sendConsoleCommand(globalContext, `PING:${page}`);
+				console.log(`PING:${page} request sent successfully`);
+			} catch (error) {
+				console.error(`Error sending PING:${page}:`, error);
+				waitingForResponseRef.current = false; // Reset waiting flag on error
+			}
+		} else {
+			console.log(
+				`Skipping page ${page} request - still waiting for previous response`
+			);
+		}
+	};
+
 	const handleRequestCommands = async () => {
-		await sendConsoleCommand(globalContext, "ping");
+		console.log("Starting command request sequence");
+		dataManager.console().clearAvailableCommands();
+		setRequestingCommands(true);
+		currentPageRef.current = 0;
+		waitingForResponseRef.current = false;
+		lastProcessedEntryRef.current = 0; // Reset to check all entries
+
+		// Request the first page (page 0)
+		await requestNextPage(0);
 	};
 
 	const renderParameter = (param: CommandParameter, index: number) => {
@@ -132,16 +221,23 @@ function ConsoleForm({ onBack, dataManager }: ConsoleFormProps) {
 		<FormLayout title="Debug Console" onBack={onBack}>
 			<div className="console-form">
 				<div className="console-history">
-					{entries.map((entry, i) => (
-						<div
-							key={i}
-							className={
-								entry.type === "command" ? "console-command" : "console-output"
-							}
-						>
-							{entry.type === "command" ? `> ${entry.text}` : entry.text}
-						</div>
-					))}
+					{entries
+						.filter(
+							(entry) =>
+								!(entry.type === "output" && "hidden" in entry && entry.hidden)
+						)
+						.map((entry, i) => (
+							<div
+								key={i}
+								className={
+									entry.type === "command"
+										? "console-command"
+										: "console-output"
+								}
+							>
+								{entry.type === "command" ? `> ${entry.text}` : entry.text}
+							</div>
+						))}
 				</div>
 				<form onSubmit={handleSubmit} className="console-input">
 					<select
@@ -185,8 +281,9 @@ function ConsoleForm({ onBack, dataManager }: ConsoleFormProps) {
 							type="button"
 							className="standard-button"
 							onClick={handleRequestCommands}
+							disabled={requestingCommands}
 						>
-							Request Commands
+							{requestingCommands ? "Loading Commands..." : "Request Commands"}
 						</button>
 					</div>
 				</form>
