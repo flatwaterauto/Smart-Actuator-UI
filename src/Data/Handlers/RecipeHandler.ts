@@ -3,38 +3,50 @@ import { Recipe } from "../Recipe";
 export class RecipeHandler {
 	private recipes: Recipe[] = [];
 	private nextRecipeId = 1;
-	private defaultVersion: number = 1;
+	private defaultVersion: number = 0;
 
 	constructor() {
-		this.initializeDefaultRecipes();
-		this.loadRecipies();
+		this.loadRecipies(); // Load first
+		if (this.recipes.length === 0) {
+			// Only initialize if no recipes were loaded
+			this.initializeDefaultRecipes();
+		}
 	}
 
 	private initializeDefaultRecipes(): void {
-		this.addRecipe({
-			name: "Layer",
-			ingredients: [
-				{ id: 1, quantity: 1200 }, // Wheat
-			],
-		});
+		const defaultRecipes: Recipe[] = [
+			{
+				id: this.nextRecipeId++,
+				name: "Layer",
+				ingredients: [
+					{ id: 1, quantity: 600 }, // Wheat
+					{ id: 5, quantity: 720 }, // Peas
+				],
+			},
+			{
+				id: this.nextRecipeId++,
+				name: "Grower",
+				ingredients: [
+					{ id: 1, quantity: 50 }, // Wheat
+					{ id: 2, quantity: 50 }, // Flax
+					{ id: 5, quantity: 100 }, // Peas
+				],
+			},
+			{
+				id: this.nextRecipeId++,
+				name: "Starter",
+				ingredients: [
+					{ id: 1, quantity: 25 }, // Wheat
+					{ id: 2, quantity: 75 }, // Flax
+					{ id: 5, quantity: 100 }, // Peas
+				],
+			},
+		];
 
-		this.addRecipe({
-			name: "Grower",
-			ingredients: [
-				{ id: 1, quantity: 50 }, // Wheat
-				{ id: 2, quantity: 50 }, // Flax
-				{ id: 5, quantity: 100 }, // Peas
-			],
-		});
+		this.recipes.push(...defaultRecipes);
 
-		this.addRecipe({
-			name: "Starter",
-			ingredients: [
-				{ id: 1, quantity: 25 }, // Wheat
-				{ id: 2, quantity: 75 }, // Flax
-				{ id: 5, quantity: 100 }, // Peas
-			],
-		});
+		// Save all recipes at once
+		this.saveRecipes();
 	}
 
 	public loadRecipies(): void {
@@ -47,8 +59,9 @@ export class RecipeHandler {
 		if (
 			storedData &&
 			storedVersion &&
-			parseInt(storedVersion, 10) >= this.defaultVersion
+			parseInt(storedVersion, 10) > this.defaultVersion
 		) {
+			console.log("Loading recipes from localStorage.");
 			this.recipes = JSON.parse(storedData);
 			this.nextRecipeId =
 				this.recipes.length > 0
@@ -58,6 +71,9 @@ export class RecipeHandler {
 			// Overwrite local storage with default recipes
 			localStorage.setItem("recipes", JSON.stringify(this.recipes));
 			localStorage.setItem("recipesVersion", this.defaultVersion.toString());
+			console.log(
+				"Local storage version is outdated. Overwriting with default recipes."
+			);
 		}
 	}
 
@@ -111,10 +127,12 @@ export class RecipeHandler {
 	}
 
 	private saveRecipes(): void {
+		console.log("saveRecipes called from:", new Error().stack); // Add debug logging
 		localStorage.setItem("recipes", JSON.stringify(this.recipes));
 		localStorage.setItem(
 			"recipesVersion",
 			(this.defaultVersion + 1).toString()
 		);
+		console.log("Recipes saved to localStorage.");
 	}
 }
