@@ -3,12 +3,17 @@ import { Recipe } from "../Recipe";
 export class RecipeHandler {
 	private recipes: Recipe[] = [];
 	private nextRecipeId = 1;
+	private version: number = 0;
 
 	constructor() {
 		this.initializeDefaultRecipes();
+		this.loadRecipies();
 	}
 
 	private initializeDefaultRecipes(): void {
+		//set default version
+		this.version = 1;
+
 		this.addRecipe({
 			name: "Layer",
 			ingredients: [
@@ -35,6 +40,30 @@ export class RecipeHandler {
 		});
 	}
 
+	public loadRecipies(): void {
+		// loads recipies from local storage.
+		// if the default version is higher than the local storage version, overrite the local storage with the default recipes.
+
+		const storedData = localStorage.getItem("recipes");
+		const storedVersion = localStorage.getItem("recipesVersion");
+
+		if (
+			storedData &&
+			storedVersion &&
+			parseInt(storedVersion, 10) >= this.version
+		) {
+			this.recipes = JSON.parse(storedData);
+			this.nextRecipeId =
+				this.recipes.length > 0
+					? Math.max(...this.recipes.map((r) => r.id)) + 1
+					: 1;
+		} else {
+			// Overwrite local storage with default recipes
+			localStorage.setItem("recipes", JSON.stringify(this.recipes));
+			localStorage.setItem("recipesVersion", this.version.toString());
+		}
+	}
+
 	public getRecipes(): Recipe[] {
 		return [...this.recipes];
 	}
@@ -49,6 +78,10 @@ export class RecipeHandler {
 			...recipeData,
 		};
 		this.recipes.push(recipe);
+
+		// Update localStorage
+		localStorage.setItem("recipes", JSON.stringify(this.recipes));
+
 		return recipe;
 	}
 
@@ -61,6 +94,10 @@ export class RecipeHandler {
 
 		const updatedRecipe: Recipe = { id, ...recipeData };
 		this.recipes[index] = updatedRecipe;
+
+		// Update localStorage
+		localStorage.setItem("recipes", JSON.stringify(this.recipes));
+
 		return updatedRecipe;
 	}
 
@@ -69,6 +106,10 @@ export class RecipeHandler {
 		if (index === -1) return false;
 
 		this.recipes.splice(index, 1);
+
+		// Update localStorage
+		localStorage.setItem("recipes", JSON.stringify(this.recipes));
+
 		return true;
 	}
 }
