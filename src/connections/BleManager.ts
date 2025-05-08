@@ -111,6 +111,20 @@ export class BleManager {
 					),
 				])) as BluetoothRemoteGATTServer;
 
+				// Set security level if supported
+				if (this.device.gatt) {
+					// Some browsers support setting security level
+					if ("setPreferredPhy" in this.device.gatt) {
+						console.log("Setting security level...");
+						try {
+							// @ts-ignore - Not in all Web Bluetooth implementations
+							await this.device.gatt.setSecurityLevel("authenticated");
+						} catch (e) {
+							console.warn("Security level setting not supported:", e);
+						}
+					}
+				}
+
 				console.log("GATT server connected, getting service...");
 				const service = await this.server.getPrimaryService(SERVICE_UUID);
 

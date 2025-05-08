@@ -12,9 +12,7 @@ export class RecipeHandler {
 		this.addRecipe({
 			name: "Layer",
 			ingredients: [
-				{ id: 1, quantity: 500 }, // Wheat
-				{ id: 2, quantity: 500 }, // Flax
-				{ id: 5, quantity: 1000 }, // Peas
+				{ id: 1, quantity: 1200 }, // Wheat
 			],
 		});
 
