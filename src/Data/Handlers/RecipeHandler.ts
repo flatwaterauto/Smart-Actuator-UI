@@ -3,7 +3,7 @@ import { Recipe } from "../Recipe";
 export class RecipeHandler {
 	private recipes: Recipe[] = [];
 	private nextRecipeId = 1;
-	private version: number = 0;
+	private defaultVersion: number = 1;
 
 	constructor() {
 		this.initializeDefaultRecipes();
@@ -11,9 +11,6 @@ export class RecipeHandler {
 	}
 
 	private initializeDefaultRecipes(): void {
-		//set default version
-		this.version = 1;
-
 		this.addRecipe({
 			name: "Layer",
 			ingredients: [
@@ -50,7 +47,7 @@ export class RecipeHandler {
 		if (
 			storedData &&
 			storedVersion &&
-			parseInt(storedVersion, 10) >= this.version
+			parseInt(storedVersion, 10) >= this.defaultVersion
 		) {
 			this.recipes = JSON.parse(storedData);
 			this.nextRecipeId =
@@ -60,7 +57,7 @@ export class RecipeHandler {
 		} else {
 			// Overwrite local storage with default recipes
 			localStorage.setItem("recipes", JSON.stringify(this.recipes));
-			localStorage.setItem("recipesVersion", this.version.toString());
+			localStorage.setItem("recipesVersion", this.defaultVersion.toString());
 		}
 	}
 
@@ -80,7 +77,7 @@ export class RecipeHandler {
 		this.recipes.push(recipe);
 
 		// Update localStorage
-		localStorage.setItem("recipes", JSON.stringify(this.recipes));
+		this.saveRecipes();
 
 		return recipe;
 	}
@@ -96,7 +93,7 @@ export class RecipeHandler {
 		this.recipes[index] = updatedRecipe;
 
 		// Update localStorage
-		localStorage.setItem("recipes", JSON.stringify(this.recipes));
+		this.saveRecipes();
 
 		return updatedRecipe;
 	}
@@ -108,8 +105,16 @@ export class RecipeHandler {
 		this.recipes.splice(index, 1);
 
 		// Update localStorage
-		localStorage.setItem("recipes", JSON.stringify(this.recipes));
+		this.saveRecipes();
 
 		return true;
+	}
+
+	private saveRecipes(): void {
+		localStorage.setItem("recipes", JSON.stringify(this.recipes));
+		localStorage.setItem(
+			"recipesVersion",
+			(this.defaultVersion + 1).toString()
+		);
 	}
 }
