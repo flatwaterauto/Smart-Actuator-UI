@@ -3,7 +3,7 @@ import { Recipe } from "../Recipe";
 export class RecipeHandler {
 	private recipes: Recipe[] = [];
 	private nextRecipeId = 1;
-	private defaultVersion: number = 0;
+	private defaultVersion: number = 1;
 
 	constructor() {
 		this.loadRecipies(); // Load first
@@ -19,26 +19,19 @@ export class RecipeHandler {
 				id: this.nextRecipeId++,
 				name: "Layer",
 				ingredients: [
-					{ id: 1, quantity: 600 }, // Wheat
 					{ id: 5, quantity: 720 }, // Peas
+					{ id: 1, quantity: 600 }, // Wheat
+					{ id: 2, quantity: 300 }, // Flax
+					{ id: 3, quantity: 100 }, // Oats
 				],
 			},
 			{
 				id: this.nextRecipeId++,
 				name: "Grower",
 				ingredients: [
-					{ id: 1, quantity: 50 }, // Wheat
-					{ id: 2, quantity: 50 }, // Flax
-					{ id: 5, quantity: 100 }, // Peas
-				],
-			},
-			{
-				id: this.nextRecipeId++,
-				name: "Starter",
-				ingredients: [
-					{ id: 1, quantity: 25 }, // Wheat
-					{ id: 2, quantity: 75 }, // Flax
-					{ id: 5, quantity: 100 }, // Peas
+					{ id: 5, quantity: 740 }, // Peas
+					{ id: 1, quantity: 590 }, // Wheat
+					{ id: 2, quantity: 300 }, // Flax
 				],
 			},
 		];
