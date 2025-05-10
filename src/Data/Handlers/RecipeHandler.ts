@@ -3,7 +3,7 @@ import { Recipe } from "../Recipe";
 export class RecipeHandler {
 	private recipes: Recipe[] = [];
 	private nextRecipeId = 1;
-	private defaultVersion: number = 1;
+	private defaultVersion: number = 2;
 
 	constructor() {
 		this.loadRecipies(); // Load first
