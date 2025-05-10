@@ -32,6 +32,76 @@ export class RecipeHandler {
 					{ id: 5, quantity: 740 }, // Peas
 					{ id: 1, quantity: 590 }, // Wheat
 					{ id: 2, quantity: 300 }, // Flax
+					{ id: 3, quantity: 110 }, // Oats
+				],
+			},
+			{
+				id: this.nextRecipeId++,
+				name: "Swine",
+				ingredients: [
+					{ id: 5, quantity: 785 }, // Peas
+					{ id: 1, quantity: 765 }, // Wheat
+					{ id: 2, quantity: 285 }, // Flax
+					{ id: 3, quantity: 100 }, // Oats
+				],
+			},
+			{
+				id: this.nextRecipeId++,
+				name: "Goat 16%",
+				ingredients: [
+					{ id: 5, quantity: 700 }, // Peas
+					{ id: 1, quantity: 500 }, // Wheat
+					{ id: 4, quantity: 475 }, // Barley
+					{ id: 2, quantity: 300 }, // Flax
+				],
+			},
+			{
+				id: this.nextRecipeId++,
+				name: "Broiler",
+				ingredients: [
+					{ id: 5, quantity: 750 }, // Peas
+					{ id: 1, quantity: 735 }, // Wheat
+					{ id: 2, quantity: 200 }, // Flax
+					{ id: 3, quantity: 130 }, // Oats
+				],
+			},
+			{
+				id: this.nextRecipeId++,
+				name: "Starter",
+				ingredients: [
+					{ id: 5, quantity: 630 }, // Peas
+					{ id: 1, quantity: 350 }, // Wheat
+					{ id: 4, quantity: 325 }, // Barley
+					{ id: 2, quantity: 300 }, // Flax
+				],
+			},
+			{
+				id: this.nextRecipeId++,
+				name: "Chicken Scratch",
+				ingredients: [
+					{ id: 1, quantity: 667 }, // Wheat
+					{ id: 4, quantity: 666 }, // Barley
+					{ id: 3, quantity: 667 }, // Oats
+				],
+			},
+			{
+				id: this.nextRecipeId++,
+				name: "Fehr Steer",
+				ingredients: [
+					{ id: 1, quantity: 1000 }, // Wheat
+					{ id: 4, quantity: 700 }, // Barley
+					{ id: 5, quantity: 100 }, // Peas
+					{ id: 2, quantity: 100 }, // Flax
+				],
+			},
+			{
+				id: this.nextRecipeId++,
+				name: "Aspen Moon",
+				ingredients: [
+					{ id: 5, quantity: 800 }, // Peas
+					{ id: 1, quantity: 685 }, // Wheat
+					{ id: 2, quantity: 250 }, // Flax
+					{ id: 3, quantity: 200 }, // Oats
 				],
 			},
 		];
