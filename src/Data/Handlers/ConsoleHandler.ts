@@ -76,6 +76,31 @@ export class ConsoleHandler {
 	private pongCallback: (() => void) | null = null;
 	private lastPageReceived: boolean = false;
 
+	constructor() {
+		// Load saved data from localStorage
+		const savedCommands = localStorage.getItem("console_commands");
+		const savedOutputs = localStorage.getItem("console_outputs");
+
+		if (savedCommands) {
+			this.commands = JSON.parse(savedCommands).map((cmd: any) => ({
+				...cmd,
+				timestamp: new Date(cmd.timestamp),
+			}));
+		}
+
+		if (savedOutputs) {
+			this.outputs = JSON.parse(savedOutputs).map((out: any) => ({
+				...out,
+				timestamp: new Date(out.timestamp),
+			}));
+		}
+	}
+
+	private saveToStorage(): void {
+		localStorage.setItem("console_commands", JSON.stringify(this.commands));
+		localStorage.setItem("console_outputs", JSON.stringify(this.outputs));
+	}
+
 	// Adds a new command to the history
 	public addCommand(command: string): void {
 		this.commands.push({
@@ -90,6 +115,7 @@ export class ConsoleHandler {
 		}
 
 		this.notifyListeners();
+		this.saveToStorage();
 	}
 
 	// Adds a new output to the history
@@ -161,6 +187,7 @@ export class ConsoleHandler {
 		}
 
 		this.notifyListeners();
+		this.saveToStorage();
 	}
 
 	public setResponseCallback(callback: (text: string) => void): void {
@@ -210,7 +237,13 @@ export class ConsoleHandler {
 	public clear(): void {
 		this.commands = [];
 		this.outputs = [];
+		this.deleteStoredData();
 		this.notifyListeners();
+	}
+
+	public deleteStoredData(): void {
+		localStorage.removeItem("console_commands");
+		localStorage.removeItem("console_outputs");
 	}
 
 	// Adds a listener to be notified when entries are added/removed

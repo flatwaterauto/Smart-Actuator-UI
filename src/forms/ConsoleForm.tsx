@@ -170,6 +170,10 @@ function ConsoleForm({ onBack, dataManager }: ConsoleFormProps) {
 		await requestNextPage(0);
 	};
 
+	const handleClearConsole = () => {
+		dataManager.console().clear();
+	};
+
 	const renderParameter = (param: CommandParameter, index: number) => {
 		const value =
 			parameters[index] ??
@@ -284,6 +288,13 @@ function ConsoleForm({ onBack, dataManager }: ConsoleFormProps) {
 							disabled={requestingCommands}
 						>
 							{requestingCommands ? "Loading Commands..." : "Request Commands"}
+						</button>
+						<button
+							type="button"
+							className="standard-button"
+							onClick={handleClearConsole}
+						>
+							Clear Console
 						</button>
 					</div>
 				</form>
