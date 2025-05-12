@@ -277,6 +277,27 @@ export class BleManager {
 					offset += 2;
 					break;
 				}
+
+				case "R": {
+					// Current Batch Block
+					const strLength = value.getUint8(offset);
+					offset++;
+					const batchNameBytes = new Uint8Array(
+						value.buffer,
+						offset,
+						strLength
+					);
+					const batchName = new TextDecoder().decode(batchNameBytes);
+
+					if (batchName.length === 0) {
+						// Empty batch name means batch is finished
+						this.dataManager.batch().endBatch();
+					} else {
+						// do nothing
+					}
+					offset += strLength;
+					break;
+				}
 			}
 		}
 	}

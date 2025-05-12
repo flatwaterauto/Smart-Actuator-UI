@@ -4,8 +4,10 @@ export class LiveDataHandler {
 	private currentWeight: number = 0;
 
 	public setCurrentBinType(binType: string): void {
-		this.previousBinType = this.currentBinType;
-		this.currentBinType = binType;
+		if (this.currentBinType !== binType) {
+			this.previousBinType = this.currentBinType;
+			this.currentBinType = binType;
+		}
 	}
 
 	public getCurrentBinType(): string {
