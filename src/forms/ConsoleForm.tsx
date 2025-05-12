@@ -22,6 +22,8 @@ function ConsoleForm({ onBack, dataManager }: ConsoleFormProps) {
 	const currentPageRef = useRef(0); // Start at page 0 instead of 1
 	const waitingForResponseRef = useRef(false);
 	const lastProcessedEntryRef = useRef<number>(0);
+	const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
+	const consoleHistoryRef = useRef<HTMLDivElement>(null);
 
 	useEffect(() => {
 		const handleUpdate = () => {
@@ -62,6 +64,28 @@ function ConsoleForm({ onBack, dataManager }: ConsoleFormProps) {
 			dataManager.console().removeListener(handleUpdate);
 		};
 	}, [dataManager, requestingCommands]);
+
+	// Add new useEffect for handling auto-scroll
+	useEffect(() => {
+		const scrollToBottom = () => {
+			if (consoleHistoryRef.current && shouldAutoScroll) {
+				consoleHistoryRef.current.scrollTop =
+					consoleHistoryRef.current.scrollHeight;
+			}
+		};
+
+		scrollToBottom();
+	}, [entries, shouldAutoScroll]);
+
+	// Add scroll event handler
+	const handleScroll = () => {
+		if (consoleHistoryRef.current) {
+			const { scrollTop, scrollHeight, clientHeight } =
+				consoleHistoryRef.current;
+			const isAtBottom = Math.abs(scrollHeight - clientHeight - scrollTop) < 10;
+			setShouldAutoScroll(isAtBottom);
+		}
+	};
 
 	// Handle a received pong response
 	const handlePongReceived = () => {
@@ -224,7 +248,11 @@ function ConsoleForm({ onBack, dataManager }: ConsoleFormProps) {
 	return (
 		<FormLayout title="Debug Console" onBack={onBack}>
 			<div className="console-form">
-				<div className="console-history">
+				<div
+					className="console-history"
+					ref={consoleHistoryRef}
+					onScroll={handleScroll}
+				>
 					{entries
 						.filter(
 							(entry) =>
