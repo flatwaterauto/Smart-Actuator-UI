@@ -19,7 +19,7 @@ function SettingsForm({ onBack, dataManager }: SettingsFormProps) {
 
 			<div className="settings-section">
 				<h2>Bin Configuration</h2>
-				<BinSettings dataManager={new DataManager()} />
+				<BinSettings dataManager={dataManager} />
 			</div>
 		</FormLayout>
 	);

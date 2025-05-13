@@ -22,29 +22,43 @@ export function BinSettings({ dataManager }: { dataManager: DataManager }) {
 		dataManager.binSettings().getBinSettings()
 	);
 	const listenerRegistered = useRef(false);
+	const latestDataManager = useRef(dataManager);
+	const listenerFn = useRef<(() => void) | undefined>(undefined);
 
-	// Setup listener first
+	// Keep dataManager ref updated
 	useEffect(() => {
-		console.log("Setting up bin settings listener");
+		latestDataManager.current = dataManager;
+	}, [dataManager]);
 
-		const handleUpdate = () => {
-			console.log("Bin settings update handler called");
+	// Create stable update handler
+	useEffect(() => {
+		listenerFn.current = () => {
+			console.log("[BinSettings Component] Update handler called");
 			const currentSettings = dataManager.binSettings().getBinSettings();
-			console.log("Current settings:", currentSettings);
+			console.log("[BinSettings Component] Current settings:", currentSettings);
 			setBins(currentSettings);
 		};
+	}, [dataManager]);
 
-		// Store reference to avoid closure issues
-		const listenerFn = handleUpdate.bind(null);
-		dataManager.binSettings().addListener(listenerFn);
+	// Setup listener
+	useEffect(() => {
+		if (!listenerFn.current) {
+			console.error(
+				"[BinSettings Component] Listener function not initialized"
+			);
+			return;
+		}
+
+		console.log("[BinSettings Component] Setting up bin settings listener");
+		dataManager.binSettings().addListener(listenerFn.current);
 		listenerRegistered.current = true;
 
-		console.log("Listener setup complete");
-
 		return () => {
-			console.log("Cleaning up bin settings listener");
+			console.log("[BinSettings Component] Cleaning up bin settings listener");
+			if (listenerFn.current) {
+				dataManager.binSettings().removeListener(listenerFn.current);
+			}
 			listenerRegistered.current = false;
-			dataManager.binSettings().removeListener(listenerFn);
 		};
 	}, [dataManager]);
 
@@ -59,28 +73,54 @@ export function BinSettings({ dataManager }: { dataManager: DataManager }) {
 		setIsLoading(true);
 		try {
 			console.log("Starting load settings process with active listener");
-			dataManager.binSettings().markAsNotUpdated();
+			// Store reference to the specific handler instance we're working with
+			const binSettingsHandler = dataManager.binSettings();
+			console.log(
+				"[BinSettings] BinSettingsHandler instance ID:",
+				binSettingsHandler
+			);
+
+			binSettingsHandler.markAsNotUpdated();
 			const success = await requestBinSettings(globalContext);
 			if (!success) {
 				globalContext.handleError("Failed to send bin settings request");
 				return;
 			}
 
+			const abortController = new AbortController();
+			const cleanup = () => {
+				console.log("Cleaning up promises");
+				abortController.abort();
+			};
+
 			await Promise.race([
 				(async () => {
-					console.log("Starting polling loop");
-					let attempts = 0;
-					while (!dataManager.binSettings().isUpdated()) {
-						console.log(`Polling attempt ${++attempts}`);
-						await new Promise((resolve) =>
-							setTimeout(resolve, BIN_SETTINGS_POLL_INTERVAL)
-						);
+					try {
+						console.log("Starting polling loop");
+						let attempts = 0;
+						// Use the same binSettingsHandler instance we stored earlier
+						while (!binSettingsHandler.isUpdated()) {
+							if (abortController.signal.aborted) {
+								console.log("Polling aborted");
+								throw new Error("Polling aborted");
+							}
+							console.log(`Polling attempt ${++attempts}`);
+							await new Promise((resolve) =>
+								setTimeout(resolve, BIN_SETTINGS_POLL_INTERVAL)
+							);
+						}
+						console.log("Settings updated successfully");
+						cleanup(); // Abort the timeout promise
+						return "success";
+					} catch (error) {
+						console.log("Polling error:", error);
+						throw error;
 					}
-					console.log("Settings updated successfully");
 				})(),
 				new Promise((_, reject) =>
 					setTimeout(() => {
 						console.log("Timeout reached!");
+						cleanup(); // Abort the polling promise
 						reject(new Error("Timeout waiting for bin settings"));
 					}, BIN_SETTINGS_TIMEOUT)
 				),
@@ -261,6 +301,16 @@ export function BinSettings({ dataManager }: { dataManager: DataManager }) {
 									checked={bin.offsetLocked}
 									onChange={(e) =>
 										handleBinChange(bin, "offsetLocked", e.target.checked)
+									}
+								/>
+							</div>
+							<div className="checkbox-group">
+								<label>Motor Reversed:</label>
+								<input
+									type="checkbox"
+									checked={bin.motorReversed ?? false}
+									onChange={(e) =>
+										handleBinChange(bin, "motorReversed", e.target.checked)
 									}
 								/>
 							</div>

@@ -319,7 +319,7 @@ export class BleManager {
 
 		try {
 			// Only proceed if we have enough data for at least one bin
-			if (value.byteLength < 23) {
+			if (value.byteLength < 24) {
 				// Minimum size for one bin entry
 				console.log("Notification data too small, ignoring");
 				return;
@@ -359,6 +359,9 @@ export class BleManager {
 				// Parse offset locked (1 byte)
 				const offsetLocked = value.getUint8(offset++) === 1;
 
+				// Parse motor reversed (1 byte)
+				const motorReversed = value.getUint8(offset++) === 1;
+
 				binSettings.push({
 					id: binId,
 					ingredientId,
@@ -368,6 +371,7 @@ export class BleManager {
 					augerOffset,
 					augerOffsetCount,
 					offsetLocked,
+					motorReversed,
 				});
 			}
 
