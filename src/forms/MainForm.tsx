@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import "./MainForm.css";
 import "../components/Layout/Formatting.css";
 import InfoPreview from "../components/ProjectSpecific/InfoPreview";
@@ -17,7 +18,23 @@ function MainForm({
 	onDevelopers,
 	dataManager,
 }: Props) {
+	const [, setUpdateTrigger] = useState(0);
 	const currentBatch = dataManager.batch().getCurrentBatch();
+
+	// Register with the batch handler to update when batch changes
+	useEffect(() => {
+		const handleUpdate = () => {
+			setUpdateTrigger((prev) => prev + 1);
+		};
+
+		// Add the listener
+		dataManager.batch().addListener(handleUpdate);
+
+		// Clean up when the component unmounts
+		return () => {
+			dataManager.batch().removeListener(handleUpdate);
+		};
+	}, [dataManager]);
 
 	const handleBatchButton = () => {
 		onStartBatch();
