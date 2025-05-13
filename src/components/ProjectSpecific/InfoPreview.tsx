@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import "./InfoPreview.css";
 import { DataManager } from "../../Data/DataManager";
 
@@ -6,6 +7,26 @@ interface InfoPreviewProps {
 }
 
 function InfoPreview({ dataManager }: InfoPreviewProps) {
+	// Add state to force re-renders when data changes
+	const [, setUpdateTrigger] = useState(0);
+
+	// Subscribe to LiveDataHandler and BatchHandler changes
+	useEffect(() => {
+		const handleUpdate = () => {
+			setUpdateTrigger((prev) => prev + 1);
+		};
+
+		// Add the listeners
+		dataManager.liveData().addListener(handleUpdate);
+		dataManager.batch().addListener(handleUpdate);
+
+		// Clean up when the component unmounts
+		return () => {
+			dataManager.liveData().removeListener(handleUpdate);
+			dataManager.batch().removeListener(handleUpdate);
+		};
+	}, [dataManager]);
+
 	const recipeID = dataManager.batch().getCurrentBatch()?.recipeId || -1;
 	const recipeName = dataManager.recipe().getRecipe(recipeID)?.name || "None";
 	const recipeQty = dataManager.batch().getCurrentBatch()?.quantity || -1;
