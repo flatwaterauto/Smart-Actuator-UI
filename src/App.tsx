@@ -108,6 +108,7 @@ function App() {
 						onBack={() => setCurrentForm(FormList.Main)}
 						onSettings={() => setCurrentForm(FormList.Settings)}
 						onConsole={() => setCurrentForm(FormList.Console)}
+						dataManager={dataManager}
 					/>
 				);
 		}

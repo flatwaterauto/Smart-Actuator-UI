@@ -252,6 +252,9 @@ export class BleManager {
 		const value = (event.target as BluetoothRemoteGATTCharacteristic).value;
 		if (!value) return;
 
+		// Track if a dump in progress block was found
+		let dumpBlockFound = false;
+
 		// Process the notification based on the block type
 		let offset = 0;
 		while (offset < value.byteLength) {
@@ -291,6 +294,10 @@ export class BleManager {
 
 					if (batchName.length === 0) {
 						// Empty batch name means batch is finished
+						// Beep
+						this.dataManager.liveData().playDing();
+
+						// End batch
 						this.dataManager.batch().endBatch();
 					} else {
 						// do nothing
@@ -298,7 +305,20 @@ export class BleManager {
 					offset += strLength;
 					break;
 				}
+
+				case "D": {
+					// Dump in progress Block
+					// This is a simple notification without data
+					dumpBlockFound = true;
+					this.dataManager.liveData().setDumpInProgress(true);
+					break;
+				}
 			}
+		}
+
+		// If no dump block was found, set dump in progress to false
+		if (!dumpBlockFound) {
+			this.dataManager.liveData().setDumpInProgress(false);
 		}
 	}
 
