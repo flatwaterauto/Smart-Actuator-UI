@@ -293,12 +293,14 @@ export class BleManager {
 					const batchName = new TextDecoder().decode(batchNameBytes);
 
 					if (batchName.length === 0) {
-						// Empty batch name means batch is finished
-						// Beep
-						this.dataManager.liveData().playDing();
+						if (this.dataManager.batch().getCurrentBatch() != null) {
+							// Empty batch name means batch is finished
+							// Beep
+							this.dataManager.liveData().playDing();
 
-						// End batch
-						this.dataManager.batch().endBatch();
+							// End batch
+							this.dataManager.batch().endBatch();
+						}
 					} else {
 						// do nothing
 					}

@@ -9,6 +9,7 @@ interface Props {
 	onStartBatch: () => void;
 	onStartUnloading: () => void;
 	onDevelopers: () => void;
+	onCalibrate: () => void;
 	dataManager: DataManager;
 }
 
@@ -16,6 +17,7 @@ function MainForm({
 	onStartBatch,
 	onStartUnloading,
 	onDevelopers,
+	onCalibrate,
 	dataManager,
 }: Props) {
 	const [, setUpdateTrigger] = useState(0);
@@ -52,6 +54,9 @@ function MainForm({
 				</button>
 				<button className="standard-button" onClick={onStartUnloading}>
 					Start Unloading
+				</button>
+				<button className="standard-button" onClick={onCalibrate}>
+					Calibrate Bin
 				</button>
 			</div>
 			<InfoPreview dataManager={dataManager} />

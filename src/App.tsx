@@ -12,6 +12,7 @@ import { useEnumUrlParams } from "./helper/UrlParams";
 import { BleManager } from "./connections/BleManager";
 import { GlobalProvider } from "./contexts/GlobalContextProvider";
 import { FormList } from "./Data/FormList";
+import CalibrateForm from "./forms/CalibrateForm";
 
 const formToString: Record<FormList, string> = {
 	[FormList.Login]: "login",
@@ -22,6 +23,7 @@ const formToString: Record<FormList, string> = {
 	[FormList.Unloading]: "unloading",
 	[FormList.Console]: "console",
 	[FormList.Developers]: "developers",
+	[FormList.Calibrate]: "calibrate",
 };
 
 const stringToForm: Record<string, FormList> = Object.entries(
@@ -67,6 +69,7 @@ function App() {
 						onStartBatch={() => setCurrentForm(FormList.Start_Batch)}
 						onStartUnloading={() => setCurrentForm(FormList.Unloading)}
 						onDevelopers={() => setCurrentForm(FormList.Developers)}
+						onCalibrate={() => setCurrentForm(FormList.Calibrate)}
 						dataManager={dataManager}
 					/>
 				);
@@ -108,6 +111,13 @@ function App() {
 						onBack={() => setCurrentForm(FormList.Main)}
 						onSettings={() => setCurrentForm(FormList.Settings)}
 						onConsole={() => setCurrentForm(FormList.Console)}
+						dataManager={dataManager}
+					/>
+				);
+			case FormList.Calibrate:
+				return (
+					<CalibrateForm
+						onBack={() => setCurrentForm(FormList.Main)}
 						dataManager={dataManager}
 					/>
 				);

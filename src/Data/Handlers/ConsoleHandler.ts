@@ -65,7 +65,7 @@ export class ConsoleHandler {
 	private commands: ConsoleEntry[] = [];
 	private outputs: ConsoleEntry[] = [];
 	// Maximum number of entries to keep in history
-	private maxEntries: number = 100;
+	private maxEntries: number = 1000;
 	// Callbacks for when entries are added/removed
 	private listeners: ((entries: ConsoleEntry[]) => void)[] = [];
 
