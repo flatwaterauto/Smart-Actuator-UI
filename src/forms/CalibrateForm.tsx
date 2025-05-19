@@ -199,7 +199,7 @@ function CalibrateForm({ dataManager, onBack }: Props) {
 	return (
 		<FormLayout title="Calibrate Bin" onBack={onBack}>
 			<div className="calibrate-container">
-				{/* Display current bin info */}
+				{/* Display current bin info - always visible */}
 				<div className="current-bin-info">
 					<h2>Current Bin: {currentBinType}</h2>
 					{currentBin && <p>Bin ID: {currentBin.id}</p>}
@@ -212,81 +212,87 @@ function CalibrateForm({ dataManager, onBack }: Props) {
 					</button>
 				</div>
 
-				<div className="sliders-container">
-					<div className="slider-group">
-						<div className="time-display">
-							<input
-								type="number"
-								value={openTimeInput}
-								onChange={handleOpenTimeInputChange}
-								onBlur={handleOpenTimeBlur}
-								min="0"
-								max="15"
-								step="0.01"
-							/>
-							s
-						</div>
-						<div className="slider-container open-slider">
-							<span className="slider-label">Open Time</span>
-							<input
-								type="range"
-								min="0"
-								max="15000"
-								step="10"
-								value={openTime}
-								onChange={handleOpenTimeChange}
-								className="vertical-slider inverted"
-							/>
-						</div>
-					</div>
+				{/* Only show controls when a bin is selected */}
+				{currentBin && (
+					<>
+						<div className="sliders-container">
+							<div className="slider-group">
+								<div className="time-display">
+									<input
+										type="number"
+										value={openTimeInput}
+										onChange={handleOpenTimeInputChange}
+										onBlur={handleOpenTimeBlur}
+										min="0"
+										max="15"
+										step="0.01"
+									/>
+									s
+								</div>
+								<div className="slider-container open-slider">
+									<span className="slider-label">Open Time</span>
+									<input
+										type="range"
+										min="0"
+										max="15000"
+										step="10"
+										value={openTime}
+										onChange={handleOpenTimeChange}
+										className="vertical-slider inverted"
+									/>
+								</div>
+							</div>
 
-					<div className="slider-group">
-						<div className="time-display">
-							<input
-								type="number"
-								value={slowDownTimeInput}
-								onChange={handleSlowDownTimeInputChange}
-								onBlur={handleSlowDownTimeBlur}
-								min="0"
-								max={formatTimeToSeconds(openTime)}
-								step="0.01"
-							/>
-							s
+							<div className="slider-group">
+								<div className="time-display">
+									<input
+										type="number"
+										value={slowDownTimeInput}
+										onChange={handleSlowDownTimeInputChange}
+										onBlur={handleSlowDownTimeBlur}
+										min="0"
+										max={formatTimeToSeconds(openTime)}
+										step="0.01"
+									/>
+									s
+								</div>
+								<div className="slider-container close-slider">
+									<span className="slider-label">Slow Down Time</span>
+									<input
+										type="range"
+										min="0"
+										max={openTime}
+										step="10"
+										value={slowDownTime}
+										onChange={handleSlowDownTimeChange}
+										className="vertical-slider"
+									/>
+								</div>
+							</div>
 						</div>
-						<div className="slider-container close-slider">
-							<span className="slider-label">Slow Down Time</span>
-							<input
-								type="range"
-								min="0"
-								max={openTime}
-								step="10"
-								value={slowDownTime}
-								onChange={handleSlowDownTimeChange}
-								className="vertical-slider"
-							/>
+
+						<div className="calibrate-info">
+							<p>
+								Open Time: {formatTimeToSeconds(openTime)} seconds ({openTime}{" "}
+								ms)
+							</p>
+							<p>
+								Slow Down Time: {formatTimeToSeconds(slowDownTime)} seconds (
+								{slowDownTime} ms)
+							</p>
 						</div>
-					</div>
-				</div>
 
-				<div className="calibrate-info">
-					<p>
-						Open Time: {formatTimeToSeconds(openTime)} seconds ({openTime} ms)
-					</p>
-					<p>
-						Slow Down Time: {formatTimeToSeconds(slowDownTime)} seconds (
-						{slowDownTime} ms)
-					</p>
-				</div>
-
-				<div className="button-container">
-					<button
-						className="standard-button"
-						onClick={handleSaveCalibration}
-						disabled={!currentBin || isSaving}
-					>
-						{isSaving ? "Saving..." : "Save Calibration"}
-					</button>
-				</div>
+						<div className="button-container">
+							<button
+								className="standard-button"
+								onClick={handleSaveCalibration}
+								disabled={isSaving}
+							>
+								{isSaving ? "Saving..." : "Save Calibration"}
+							</button>
+						</div>
+					</>
+				)}
 			</div>
 		</FormLayout>
 	);
