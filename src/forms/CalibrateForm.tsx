@@ -172,6 +172,7 @@ function CalibrateForm({ dataManager, onBack }: Props) {
 				...currentBin,
 				openTime,
 				slowDownTime,
+				augerOffsetCount: 1, // Set augerOffsetCount to 1 when saving
 			};
 
 			dataManager.binSettings().updateBinSetting(updatedBin);
@@ -184,7 +185,7 @@ function CalibrateForm({ dataManager, onBack }: Props) {
 				globalContext.handleError("Failed to save calibration");
 			} else {
 				console.log(
-					`Saved: Open=${openTime}ms, SlowDown=${slowDownTime}ms for bin ${currentBin.id}`
+					`Saved: Open=${openTime}ms, SlowDown=${slowDownTime}ms for bin ${currentBin.id} (Offset Count set to 1)`
 				);
 			}
 		} catch (error) {
