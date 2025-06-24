@@ -167,11 +167,33 @@ function CalibrateForm({ dataManager, onBack }: Props) {
 
 		setIsSaving(true);
 		try {
-			// Update the bin locally first
+			// Update the bin locally first with the new settings
+
+			// get the old values
+			const oldOpenTime = currentBin.openTime;
+			const oldSlowDownTime = currentBin.slowDownTime;
+			const oldAugerOffset = currentBin.augerOffset;
+
+			// Calculate window sizes based on openTime - slowDownTime
+			const oldWindow = oldOpenTime - oldSlowDownTime;
+			const newWindow = openTime - slowDownTime;
+
+			// Ensure newWindow is not zero to avoid division by zero
+			let newAugerOffset = oldAugerOffset;
+			if (oldWindow > 0) {
+				// Calculate the old ratio and apply it to the new window
+				// rounding to a whole number
+				newAugerOffset = Math.round((oldAugerOffset / oldWindow) * newWindow);
+			}
+
+			// Add 500ms offset buffer
+			newAugerOffset += 500;
+
 			const updatedBin = {
 				...currentBin,
 				openTime,
 				slowDownTime,
+				augerOffset: newAugerOffset,
 				augerOffsetCount: 1, // Set augerOffsetCount to 1 when saving
 			};
 
